@@ -124,10 +124,11 @@ document.addEventListener("DOMContentLoaded", function() {
             if (diff <= 0) {
                 span.innerText = "Дедлайн истек";
             } else {
-                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const days = Math.floor(diff / (1000 * 60 * 60) / 24);
+                const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                span.innerText = `Осталось: ${hours}ч ${minutes}м ${seconds}с`;
+                span.innerText = `Осталось: ${days}д ${hours}ч ${minutes}м ${seconds}с`;
             }
         });
     }
