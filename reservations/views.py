@@ -110,3 +110,8 @@ def user_cabinet_view(request):
         'active_incoming_reservations': active_incoming_reservations,
         'my_reservations': my_reservations,
     })
+
+
+
+def main():
+    pass
