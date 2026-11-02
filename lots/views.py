@@ -38,6 +38,17 @@ def lot_create_view(request):
         else:
             try:
                 category = Category.objects.get(pk=category_id)
+                qty = int(quantity)
+                if qty <= 0:
+                    messages.error(request, "Количество должно быть больше 0!")
+                    return redirect('lot_create')
+
+                weight_val = float(str(weight_kg).replace(',', '.').strip())
+                if weight_val <= 0 or weight_val > 9999.99:
+                    messages.error(request, "Вес должен быть от 0.01 до 9999.99 кг!")
+                    return redirect('lot_create')
+                weight = round(weight_val, 2)
+
                 location, _ = Location.objects.get_or_create(
                     district=district,
                     address=address,
@@ -46,8 +57,6 @@ def lot_create_view(request):
                         'pickup_instructions': pickup_instructions
                     }
                 )
-                qty = int(quantity)
-                weight = float(weight_kg) if weight_kg else 0.0
                 dt = parse_datetime(expiry_time_raw)
                 if dt and timezone.is_naive(dt):
                     dt = timezone.make_aware(dt)
@@ -85,7 +94,12 @@ def lot_edit_view(request, pk):
     if request.method == 'POST':
         lot.title = request.POST.get('title', lot.title).strip()
         lot.description = request.POST.get('description', lot.description).strip()
-        lot.weight_kg = request.POST.get('weight_kg', lot.weight_kg)
+        try:
+            w_val = float(str(request.POST.get('weight_kg', lot.weight_kg)).replace(',', '.').strip())
+            if 0 < w_val <= 9999.99:
+                lot.weight_kg = round(w_val, 2)
+        except (ValueError, TypeError):
+            pass
         lot.suitable_for_zoo = 'suitable_for_zoo' in request.POST
         lot.zoo_notes = request.POST.get('zoo_notes', '').strip()
         if 'image' in request.FILES:
