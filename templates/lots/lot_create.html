@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Опубликовать лот — Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <h3 class="card-title fw-bold text-success mb-3">
+                    <i class="bi bi-box2-heart-fill"></i> Отдать лот (Публикация)
+                </h3>
+                <p class="text-muted small mb-4">Укажите параметры лота и удобный адрес, откуда его можно будет забрать.</p>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Название лота *</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Например: 3 багета и круассаны, Зимняя куртка 48р">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Описание *</label>
+                        <textarea name="description" class="form-control" rows="3" required placeholder="Состав, аллергены, состояние, условия хранения"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Категория *</label>
+                        <select name="category" id="categorySelect" class="form-select" required>
+                            <option value="">Выберите категорию...</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" data-type="{{ cat.lot_type }}">{{ cat.name }} ({{ cat.get_lot_type_display }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-geo-alt-fill text-danger"></i> Где забирать лот (Адрес выдачи)</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold">Район города *</label>
+                                <input type="text" name="district" list="districtsList" class="form-control" required placeholder="Советский, Центральный...">
+                                <datalist id="districtsList">
+                                    {% for d in districts %}
+                                        <option value="{{ d }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-bold">Точный адрес встречи / дома *</label>
+                                <input type="text" name="address" class="form-control" required placeholder="ул. Ленина 15, кв. 4 или сквер у метро">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted">Подсказка для получателя (необязательно)</label>
+                            <input type="text" name="pickup_instructions" class="form-control form-control-sm" placeholder="Домофон 25, этаж 3, или позвонить за 15 минут">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Количество (шт) *</label>
+                            <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Вес (кг) *</label>
+                            <input type="number" step="0.01" name="weight_kg" class="form-control" placeholder="0.5" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Дедлайн выдачи *</label>
+                            <input type="datetime-local" name="expiry_time" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Фотография</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+
+                    <div class="card bg-light border-warning mb-3" id="zooSection">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-warning-emphasis mb-2">
+                                <i class="bi bi-shield-check"></i> Защита от утилизации (ЗооШеринг)
+                            </h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="suitable_for_zoo" id="suitableForZoo">
+                                <label class="form-check-label fw-semibold" for="suitableForZoo">
+                                    Подходит для животных / зоопарка (если люди не успеют забрать)
+                                </label>
+                            </div>
+                            <div class="mb-1">
+                                <label class="form-label small text-muted">Примечание для зоопарка</label>
+                                <input type="text" name="zoo_notes" class="form-control form-control-sm" placeholder="Например: только травоядные, сухой хлеб, морковь/яблоки">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+                        <i class="bi bi-check2-circle"></i> Опубликовать лот
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const categorySelect = document.getElementById('categorySelect');
+    const zooSection = document.getElementById('zooSection');
+
+    function checkCategory() {
+        const selected = categorySelect.options[categorySelect.selectedIndex];
+        const lotType = selected ? selected.getAttribute('data-type') : '';
+        if (lotType === 'food') {
+            zooSection.style.display = 'block';
+        } else {
+            zooSection.style.display = 'none';
+            document.getElementById('suitableForZoo').checked = false;
+        }
+    }
+
+    categorySelect.addEventListener('change', checkCategory);
+    checkCategory();
+});
+</script>
+{% endblock %}

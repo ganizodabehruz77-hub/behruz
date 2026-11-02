@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-3 text-success fw-bold">Вход</h3>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Логин</label>
+                        <input type="text" name="username" class="form-control" required placeholder="Логин">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Пароль</label>
+                        <input type="password" name="password" class="form-control" required placeholder="Пароль">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Войти</button>
+                </form>
+
+                <div class="text-center mt-3 small">
+                    Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

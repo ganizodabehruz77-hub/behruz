@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать лот — {{ lot.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <h3 class="card-title fw-bold text-success mb-3">
+                    <i class="bi bi-pencil-square"></i> Редактирование лота
+                </h3>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Название лота</label>
+                        <input type="text" name="title" class="form-control" value="{{ lot.title }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Описание</label>
+                        <textarea name="description" class="form-control" rows="3" required>{{ lot.description }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Вес (кг)</label>
+                        <input type="number" step="0.01" name="weight_kg" class="form-control" value="{{ lot.weight_kg }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Новая фотография (необязательно)</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        {% if lot.image %}
+                            <div class="small text-muted mt-1">Текущее фото: <a href="{{ lot.image.url }}" target="_blank">открыть</a></div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="suitable_for_zoo" id="editZoo" {% if lot.suitable_for_zoo %}checked{% endif %}>
+                        <label class="form-check-label fw-bold" for="editZoo">
+                            Подходит для кормления животных зоопарка
+                        </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Примечание для зоопарка</label>
+                        <input type="text" name="zoo_notes" class="form-control" value="{{ lot.zoo_notes }}">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Сохранить изменения</button>
+                    <a href="{% url 'lot_detail' lot.pk %}" class="btn btn-outline-secondary w-100 mt-2">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

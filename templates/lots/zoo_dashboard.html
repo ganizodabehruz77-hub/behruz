@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Приемка корма для зоопарка — ЗооШеринг{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-shield-shaded text-warning"></i> Кабинет ЗооШеринга (Зоопарк / Приют)
+        </h2>
+        <p class="text-muted small mb-0">Мониторинг и подтверждение списанной пригодной еды для животных</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0 text-success">
+            <i class="bi bi-inbox-fill"></i> Поступившая еда на баланс зоопарка (Статус: Направлен в зоопарк)
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Лот</th>
+                        <th>Количество / Вес</th>
+                        <th>Точка выдачи (Адрес)</th>
+                        <th>Контакты донора</th>
+                        <th>Рацион / Пометки</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lot in incoming_lots %}
+                        <tr>
+                            <td>
+                                <strong class="text-dark">{{ lot.title }}</strong><br>
+                                <span class="badge bg-secondary">{{ lot.category.name }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ lot.available_quantity }} шт.</strong><br>
+                                <span class="badge bg-info text-dark">{{ lot.weight_kg }} кг</span>
+                            </td>
+                            <td>
+                                <strong>{{ lot.location.district }}</strong><br>
+                                <small class="text-muted">{{ lot.location.address }} ({{ lot.location.title }})</small><br>
+                                <small class="text-secondary"><i class="bi bi-info-circle"></i> {{ lot.location.pickup_instructions }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ lot.donor.username }}</strong>
+                                {% if lot.donor.profile.phone %}
+                                    <br><small class="text-muted"><i class="bi bi-telephone"></i> {{ lot.donor.profile.phone }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-warning-emphasis fw-semibold">
+                                    <i class="bi bi-tag-fill"></i> {{ lot.zoo_notes|default:'Пригодно для животных' }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'zoo_accept_lot' lot.pk %}" class="btn btn-warning btn-sm fw-bold shadow-sm" onclick="return confirm('Подтвердить прием корма на баланс зоопарка?');">
+                                    <i class="bi bi-check-lg"></i> Подтвердить получение корма
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-check-circle fs-3 text-success d-block mb-2"></i>
+                                Нет лотов, ожидающих приемки зоопарком. Все ресурсы распределены!
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

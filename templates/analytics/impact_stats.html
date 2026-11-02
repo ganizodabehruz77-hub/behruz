@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Импакт-дашборд — Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="fw-bold text-success display-6 mb-2">
+        <i class="bi bi-globe-americas text-primary"></i> Экологический и Социальный Импакт
+    </h1>
+    <p class="text-muted lead fs-6">
+        Отслеживаем реальный вклад сообщества в сокращение отходов и поддержку зоопарка (Zero Waste)
+    </p>
+</div>
+
+<!-- 4 главные карточки метрик -->
+<div class="row g-4 mb-5">
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center h-100 p-3 bg-white border-top border-4 border-success">
+            <div class="card-body">
+                <i class="bi bi-people-fill text-success fs-1 mb-2"></i>
+                <h3 class="display-6 fw-bold text-dark">{{ food_people }} <small class="fs-5 text-muted">кг</small></h3>
+                <h6 class="text-secondary fw-semibold mt-2">Спасенная еда для людей</h6>
+                <small class="text-muted">Передано через бронирования</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center h-100 p-3 bg-white border-top border-4 border-warning">
+            <div class="card-body">
+                <i class="bi bi-bug-fill text-warning fs-1 mb-2"></i>
+                <h3 class="display-6 fw-bold text-dark">{{ food_zoo }} <small class="fs-5 text-muted">кг</small></h3>
+                <h6 class="text-secondary fw-semibold mt-2">Корм для животных</h6>
+                <small class="text-muted">Принято на баланс зоопарка</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center h-100 p-3 bg-white border-top border-4 border-primary">
+            <div class="card-body">
+                <i class="bi bi-bag-check-fill text-primary fs-1 mb-2"></i>
+                <h3 class="display-6 fw-bold text-dark">{{ items_count }} <small class="fs-5 text-muted">шт.</small></h3>
+                <h6 class="text-secondary fw-semibold mt-2">Передано вещей</h6>
+                <small class="text-muted">Одежда, обувь, техника</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm text-center h-100 p-3 bg-success text-white">
+            <div class="card-body">
+                <i class="bi bi-cloud-slash-fill fs-1 mb-2"></i>
+                <h3 class="display-6 fw-bold">{{ co2_saved }} <small class="fs-5 text-white-50">кг</small></h3>
+                <h6 class="fw-bold mt-2">Предотвращено CO₂</h6>
+                <small class="text-white-50">По формуле: (Вес еды) × 2.5</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Топ районов-доноров по ТЗ -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-trophy-fill text-warning me-1"></i> Топ районов-доноров города
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 80px;">Место</th>
+                                <th>Район</th>
+                                <th>Количество лотов</th>
+                                <th>Общий вес ресурсов</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for district in top_districts %}
+                                <tr>
+                                    <td>
+                                        <span class="badge rounded-pill {% if forloop.counter == 1 %}bg-warning text-dark{% elif forloop.counter == 2 %}bg-secondary{% elif forloop.counter == 3 %}bg-danger{% else %}bg-light text-dark{% endif %} px-3">
+                                            #{{ forloop.counter }}
+                                        </span>
+                                    </td>
+                                    <td><strong class="text-dark">{{ district.location__district }}</strong></td>
+                                    <td>{{ district.lots_count }} лот.</td>
+                                    <td><strong class="text-success">{{ district.total_weight }} кг</strong></td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        Пока нет завершенных раздач для составления рейтинга районов.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

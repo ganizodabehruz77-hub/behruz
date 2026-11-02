@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}{{ lot.title }} — Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'lot_list' %}" class="text-success">Витрина</a></li>
+                <li class="breadcrumb-item active">{{ lot.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="row g-0">
+                <div class="col-md-5">
+                    {% if lot.image %}
+                        <img src="{{ lot.image.url }}" class="img-fluid rounded-start h-100" style="object-fit: cover; min-height: 280px; width: 100%;" alt="{{ lot.title }}">
+                    {% else %}
+                        <div class="bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-muted h-100" style="min-height: 280px;">
+                            <i class="bi bi-box-seam fs-1"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-7">
+                    <div class="card-body p-4 d-flex flex-column h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge {% if lot.category.lot_type == 'food' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ lot.category.name }}
+                            </span>
+                            {% if lot.suitable_for_zoo %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-bug-fill"></i> Подходит для Зоопарка
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <h3 class="card-title fw-bold text-dark mb-2">{{ lot.title }}</h3>
+                        <p class="card-text text-muted flex-grow-1">{{ lot.description }}</p>
+
+                        <!-- Таймер обратного отсчета по ТЗ -->
+                        <div class="alert alert-light border py-2 px-3 mb-3 text-danger fw-bold small text-center" 
+                             data-expiry="{{ lot.expiry_time|date:'c' }}">
+                            <i class="bi bi-clock-history"></i> <span id="countdown-timer">Загрузка таймера...</span>
+                        </div>
+
+                        <div class="row text-secondary small g-2 mb-3">
+                            <div class="col-6">
+                                <i class="bi bi-basket2-fill text-primary"></i> Доступно: <strong>{{ lot.available_quantity }}</strong> из {{ lot.quantity }} шт.
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-speedometer2 text-info"></i> Вес: <strong>{{ lot.weight_kg }} кг</strong>
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-geo-alt-fill text-danger"></i> {{ lot.location.district }}, {{ lot.location.title }}
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-person-fill text-secondary"></i> Отдал: <strong>{{ lot.donor.username }}</strong>
+                                {% if lot.donor.profile.is_business %}
+                                    <span class="badge bg-warning text-dark">Партнёр</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-2 rounded mb-3 small">
+                            <strong><i class="bi bi-pin-map"></i> Адрес выдачи:</strong> {{ lot.location.address }}<br>
+                            <strong><i class="bi bi-info-circle"></i> Инструкция:</strong> {{ lot.location.pickup_instructions }}
+                            {% if lot.zoo_notes %}
+                                <div class="mt-1 text-warning-emphasis">
+                                    <strong><i class="bi bi-stickies"></i> Пометка для зоопарка:</strong> {{ lot.zoo_notes }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Блок бронирования / редактирования -->
+                        {% if user.is_authenticated %}
+                            {% if user == lot.donor %}
+                                <div class="alert alert-secondary py-2 small mb-2 text-center">
+                                    <i class="bi bi-info-circle"></i> Это ваш собственный лот.
+                                </div>
+                                <a href="{% url 'lot_edit' lot.pk %}" class="btn btn-outline-primary w-100 fw-bold">
+                                    <i class="bi bi-pencil-square"></i> Редактировать лот
+                                </a>
+                            {% elif lot.available_quantity > 0 and not lot.is_expired and lot.status == 'available' %}
+                                <form method="post" action="{% url 'lot_reserve' lot.pk %}" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <div style="max-width: 110px;">
+                                        <input type="number" name="units" class="form-control" value="1" min="1" max="{{ lot.available_quantity }}" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-success flex-grow-1 fw-bold">
+                                        <i class="bi bi-bag-check-fill me-1"></i> Забрать (Забронировать)
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-secondary w-100 fw-bold" disabled>
+                                    Лот недоступен для бронирования
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-success w-100 fw-bold">
+                                Войдите, чтобы забрать этот лот
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const timerEl = document.querySelector('[data-expiry]');
+    if (!timerEl) return;
+    const expiry = new Date(timerEl.getAttribute('data-expiry')).getTime();
+    const span = document.getElementById('countdown-timer');
+
+    function update() {
+        const now = new Date().getTime();
+        const diff = expiry - now;
+        if (diff <= 0) {
+            span.innerText = "Дедлайн истек (лот передан в ЗооШеринг или списан)";
+            timerEl.classList.remove('text-danger');
+            timerEl.classList.add('text-muted');
+        } else {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            span.innerText = `До окончания срока: ${hours} ч. ${minutes} мин. ${seconds} сек.`;
+        }
+    }
+    update();
+    setInterval(update, 1000);
+});
+</script>
+{% endblock %}
