@@ -98,4 +98,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ganizodabehruz77@gmail.com'
 EMAIL_HOST_PASSWORD = 'dihh ncnr cryr iowu'
 
-LOGIN_URL = 'login_user'
+LOGIN_URL = 'login'
