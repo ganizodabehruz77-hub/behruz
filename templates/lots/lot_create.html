@@ -39,12 +39,12 @@
                         <div class="row g-2 mb-2">
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold">Район города *</label>
-                                <input type="text" name="district" list="districtsList" class="form-control" required placeholder="Советский, Центральный...">
-                                <datalist id="districtsList">
+                                <select name="district" class="form-select" required>
+                                    <option value="">Выберите район...</option>
                                     {% for d in districts %}
-                                        <option value="{{ d }}">
+                                        <option value="{{ d }}">{{ d }}</option>
                                     {% endfor %}
-                                </datalist>
+                                </select>
                             </div>
                             <div class="col-md-7">
                                 <label class="form-label small fw-bold">Точный адрес встречи / дома *</label>

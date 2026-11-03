@@ -6,6 +6,18 @@ from django.utils.dateparse import parse_datetime
 from django.http import HttpResponseForbidden
 from .models import ItemLot, Category, Location
 
+DISTRICTS = [
+    'р. Исмоили Сомони',
+    'р. Сино',
+    'р. Фирдавси',
+    'р. Шохмансур',
+    'Центральный',
+    'Советский',
+    'Ленинский',
+    'Октябрьский',
+    'Приморский',
+]
+
 def lot_detail_view(request, pk):
     now = timezone.now()
     lot = get_object_or_404(ItemLot.objects.select_related('category', 'location', 'donor', 'donor__profile'), pk=pk)
@@ -83,8 +95,7 @@ def lot_create_view(request):
                 messages.error(request, f"Ошибка при создании: {e}")
 
     categories = Category.objects.all()
-    districts = Location.objects.values_list('district', flat=True).distinct()
-    return render(request, 'lots/lot_create.html', {'categories': categories, 'districts': districts})
+    return render(request, 'lots/lot_create.html', {'categories': categories, 'districts': DISTRICTS})
 
 @login_required
 def lot_edit_view(request, pk):

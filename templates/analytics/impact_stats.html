@@ -12,7 +12,7 @@
 </div>
 
 <!-- 4 главные карточки метрик -->
-<div class="row g-4 mb-5">
+<div class="row g-4 mb-4">
     <div class="col-md-6 col-lg-3">
         <div class="card border-0 shadow-sm text-center h-100 p-3 bg-white border-top border-4 border-success">
             <div class="card-body">
@@ -58,13 +58,41 @@
     </div>
 </div>
 
-<!-- Топ районов-доноров по ТЗ -->
+<!-- Выделение лучшего района города -->
+{% if best_district %}
+<div class="row justify-content-center mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm text-dark" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border-left: 6px solid #ffc107 !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center">
+                    <div class="display-4 me-3 text-warning">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div>
+                        <span class="badge bg-dark text-warning fw-bold text-uppercase px-2 py-1 mb-1">
+                            🥇 Главный эко-лидер города
+                        </span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ best_district.location__district }}</h3>
+                        <small class="text-muted">Этот район спас больше всего ресурсов и лидирует в эко-рейтинге!</small>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="display-6 fw-bold text-success">{{ best_district.total_weight }} <small class="fs-6 text-dark">кг</small></div>
+                    <span class="badge bg-success">Рекордсмен</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Таблица рейтинга всех районов -->
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h5 class="fw-bold mb-0 text-dark">
-                    <i class="bi bi-trophy-fill text-warning me-1"></i> Топ районов-доноров города
+                    <i class="bi bi-bar-chart-line-fill text-success me-1"></i> Рейтинг районов по спасению ресурсов
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -80,13 +108,18 @@
                         </thead>
                         <tbody>
                             {% for district in top_districts %}
-                                <tr>
+                                <tr {% if forloop.first %}class="table-warning bg-opacity-25"{% endif %}>
                                     <td>
                                         <span class="badge rounded-pill {% if forloop.counter == 1 %}bg-warning text-dark{% elif forloop.counter == 2 %}bg-secondary{% elif forloop.counter == 3 %}bg-danger{% else %}bg-light text-dark{% endif %} px-3">
                                             #{{ forloop.counter }}
                                         </span>
                                     </td>
-                                    <td><strong class="text-dark">{{ district.location__district }}</strong></td>
+                                    <td>
+                                        <strong class="text-dark">{{ district.location__district }}</strong>
+                                        {% if forloop.first %}
+                                            <span class="badge bg-warning text-dark ms-2"><i class="bi bi-crown-fill"></i> Лучший район</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ district.lots_count }} лот.</td>
                                     <td><strong class="text-success">{{ district.total_weight }} кг</strong></td>
                                 </tr>
