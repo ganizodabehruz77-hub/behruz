@@ -81,6 +81,13 @@
                                 <a href="{% url 'lot_edit' lot.pk %}" class="btn btn-outline-primary w-100 fw-bold">
                                     <i class="bi bi-pencil-square"></i> Редактировать лот
                                 </a>
+                            {% elif user.profile.rating_score < 30 %}
+                                <div class="alert alert-danger py-2 small mb-2 text-center">
+                                    <i class="bi bi-shield-x"></i> Ваш рейтинг надежности слишком низкий ({{ user.profile.rating_score }}%). Бронирование заблокировано.
+                                </div>
+                                <button class="btn btn-secondary w-100 fw-bold" disabled>
+                                    Бронирование заблокировано
+                                </button>
                             {% elif lot.available_quantity > 0 and not lot.is_expired and lot.status == 'available' %}
                                 <form method="post" action="{% url 'lot_reserve' lot.pk %}" class="d-flex gap-2">
                                     {% csrf_token %}
@@ -88,6 +95,9 @@
                                         <input type="number" name="units" class="form-control" value="1" min="1" max="{{ lot.available_quantity }}" required>
                                     </div>
                                     <button type="submit" class="btn btn-success flex-grow-1 fw-bold">
+                                        <i class="bi bi-bag-check-fill me-1"></i> Забрать (Забронировать)
+                                    </button>
+                                </form>
                                         <i class="bi bi-bag-check-fill me-1"></i> Забрать (Забронировать)
                                     </button>
                                 </form>

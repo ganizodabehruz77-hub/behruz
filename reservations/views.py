@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from lots.models import ItemLot
 from .models import Reservation, generate_pin_code
@@ -24,23 +25,32 @@ def lot_reserve_view(request, pk):
             messages.error(request, "Вы не можете забрать собственный лот.")
             return redirect('lot_detail', pk=pk)
 
+        if request.user.profile.rating_score < 30:
+            messages.error(request, f"Ваш индекс надежности слишком низкий ({request.user.profile.rating_score}%). Вы временно не можете забирать лоты.")
+            return redirect('lot_detail', pk=pk)
+
         if lot.expiry_time <= now or lot.status != 'available':
             messages.error(request, "Срок действия лота истек или он более недоступен.")
             return redirect('lot_detail', pk=pk)
+
         try:
             requested_count = int(request.POST.get('units', 1))
         except (ValueError, TypeError):
             requested_count = 1
+
         if requested_count <= 0:
             messages.error(request, "Укажите корректное количество единиц.")
             return redirect('lot_detail', pk=pk)
+
         if requested_count > lot.available_quantity:
             messages.error(request, f"Недостаточно доступных единиц. В наличии всего {lot.available_quantity} шт.")
             return redirect('lot_detail', pk=pk)
+
         lot.available_quantity -= requested_count
         if lot.available_quantity == 0:
             lot.status = 'reserved'
         lot.save()
+
         pin = generate_pin_code()
         reservation = Reservation.objects.create(
             user=request.user,
@@ -49,21 +59,29 @@ def lot_reserve_view(request, pk):
             status='active',
             pin_code=pin
         )
+
         messages.success(request, f"Успешно забронировано {requested_count} шт.! Ваш PIN-код для получения: {pin}")
         return redirect('user_cabinet')
 
 @login_required
 def reservation_cancel_view(request, pk):
     reservation = get_object_or_404(Reservation, pk=pk, user=request.user, status='active')
+
     with transaction.atomic():
         lot = ItemLot.objects.select_for_update().get(pk=reservation.lot.pk)
         lot.available_quantity += reservation.reserved_units
         if lot.status == 'reserved':
             lot.status = 'available'
         lot.save()
+
         reservation.status = 'cancelled'
         reservation.save()
-    messages.info(request, "Бронирование отменено. Количество возвращено в доступные лоты.")
+
+        profile = request.user.profile
+        profile.rating_score = max(0, profile.rating_score - 10)
+        profile.save()
+
+    messages.info(request, "Бронирование отменено. За отмену снято 10% индекса надежности.")
     return redirect('user_cabinet')
 
 @login_required
@@ -88,6 +106,10 @@ def reservation_confirm_view(request, pk):
                 reservation.lot.status = 'completed'
                 reservation.lot.save()
 
+            receiver_profile = reservation.user.profile
+            receiver_profile.rating_score = min(100, receiver_profile.rating_score + 2)
+            receiver_profile.save()
+
             messages.success(request, "Выдача успешно подтверждена! Лот передан.")
         else:
             messages.error(request, "Неверный PIN-код! Проверьте код у получателя.")
@@ -105,13 +127,40 @@ def user_cabinet_view(request):
 
     my_reservations = Reservation.objects.filter(user=request.user).select_related('lot', 'lot__location').order_by('-created_at')
 
+    my_given_food = ItemLot.objects.filter(
+        donor=request.user,
+        category__lot_type='food',
+        status__in=['completed', 'zoo_received']
+    ).aggregate(total=Sum('weight_kg'))['total'] or 0
+
+    my_taken_food = ItemLot.objects.filter(
+        reservations__user=request.user,
+        reservations__status='completed',
+        category__lot_type='food'
+    ).distinct().aggregate(total=Sum('weight_kg'))['total'] or 0
+
+    personal_food = round(float(my_given_food) + float(my_taken_food), 1)
+    personal_co2 = round(personal_food * 2.5, 1)
+
+    if personal_food >= 30:
+        eco_rank = "Хранитель Планеты 🌳"
+        eco_progress = 100
+    elif personal_food >= 10:
+        eco_rank = "Защитник Органики 🍃"
+        eco_progress = int((personal_food / 30) * 100)
+    elif personal_food > 0:
+        eco_rank = "Друг Природы 🌿"
+        eco_progress = int((personal_food / 10) * 100)
+    else:
+        eco_rank = "Эко-Новичок 🌱"
+        eco_progress = 20
+
     return render(request, 'reservations/user_cabinet.html', {
         'my_lots': my_lots,
         'active_incoming_reservations': active_incoming_reservations,
         'my_reservations': my_reservations,
+        'personal_food': personal_food,
+        'personal_co2': personal_co2,
+        'eco_rank': eco_rank,
+        'eco_progress': eco_progress,
     })
-
-
-
-def main():
-    pass

@@ -2,7 +2,7 @@
 {% block title %}Личный кабинет — Делись Теплом{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h2 class="fw-bold text-dark mb-1">
             <i class="bi bi-person-badge text-success"></i> Личный кабинет: {{ user.username }}
@@ -20,6 +20,42 @@
     <a href="{% url 'lot_create' %}" class="btn btn-warning fw-bold text-dark shadow-sm">
         <i class="bi bi-plus-circle"></i> Отдать лот
     </a>
+</div>
+
+<!-- Персональный Эко-бейдж и геймификация -->
+<div class="card border-0 shadow-sm mb-4 text-white" style="background: linear-gradient(135deg, #198754 0%, #0d5934 100%);">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <span class="badge bg-light text-success fw-bold mb-2 px-3 py-1 fs-6">
+                    <i class="bi bi-award-fill text-warning me-1"></i> {{ eco_rank }}
+                </span>
+                <h4 class="fw-bold mb-1">Ваш персональный эко-вклад</h4>
+                <p class="text-white-50 small mb-3">Спасая еду и делясь вещами, вы уменьшаете выбросы свалочного газа и кормите животных в зоопарке.</p>
+
+                <div class="progress bg-white bg-opacity-25" style="height: 10px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ eco_progress }}%;" aria-valuenow="{{ eco_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-white-50 mt-1 d-block">Прогресс ранга: {{ eco_progress }}%</small>
+            </div>
+            <div class="col-md-5 mt-3 mt-md-0">
+                <div class="row g-2 text-center">
+                    <div class="col-6">
+                        <div class="bg-white bg-opacity-10 rounded p-3">
+                            <div class="display-6 fw-bold">{{ personal_food }} <small class="fs-6">кг</small></div>
+                            <small class="text-white-50">Спасенная еда</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-white bg-opacity-10 rounded p-3">
+                            <div class="display-6 fw-bold text-warning">{{ personal_co2 }} <small class="fs-6">кг</small></div>
+                            <small class="text-white-50">Минус CO₂</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Навигация по двум вкладкам по ТЗ п. 4.5 -->
@@ -157,7 +193,6 @@
                                             <span class="badge bg-success">В ожидании</span>
                                         </div>
 
-                                        <!-- Крупное отображение 4-значного PIN-кода по ТЗ -->
                                         <div class="bg-success bg-opacity-10 border border-success rounded p-3 text-center my-3">
                                             <small class="text-success fw-bold d-block text-uppercase">Ваш PIN-код для получения:</small>
                                             <span class="display-5 fw-bold text-success font-monospace" style="letter-spacing: 5px;">
