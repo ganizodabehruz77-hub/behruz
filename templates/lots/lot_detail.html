@@ -83,6 +83,13 @@
                                 <a href="{% url 'lot_edit' lot.pk %}" class="btn btn-outline-primary w-100 fw-bold">
                                     <i class="bi bi-pencil-square"></i> Редактировать лот
                                 </a>
+                            {% elif user.profile.is_business %}
+                                <div class="alert alert-warning py-2 small mb-2 text-center">
+                                    <i class="bi bi-shop me-1"></i> Заведения и организации выступают только в роли доноров и не могут забирать продукты.
+                                </div>
+                                <button class="btn btn-secondary w-100 fw-bold" disabled>
+                                    Бронирование доступно только жителям
+                                </button>
                             {% elif user.profile.rating_score < 30 %}
                                 <div class="alert alert-danger py-2 small mb-2 text-center">
                                     <i class="bi bi-shield-x"></i> Ваш рейтинг надежности слишком низкий ({{ user.profile.rating_score }}%). Бронирование заблокировано.
@@ -97,9 +104,6 @@
                                         <input type="number" name="units" class="form-control" value="1" min="1" max="{{ lot.available_quantity }}" required>
                                     </div>
                                     <button type="submit" class="btn btn-success flex-grow-1 fw-bold">
-                                        <i class="bi bi-bag-check-fill me-1"></i> Забрать (Забронировать)
-                                    </button>
-                                </form>
                                         <i class="bi bi-bag-check-fill me-1"></i> Забрать (Забронировать)
                                     </button>
                                 </form>
