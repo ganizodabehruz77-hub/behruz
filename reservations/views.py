@@ -4,8 +4,10 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 from lots.models import ItemLot
-from .models import Reservation, generate_pin_code
+from .models import Reservation, ReservationMessage, generate_pin_code
 
 @login_required
 def lot_reserve_view(request, pk):
@@ -59,6 +61,20 @@ def lot_reserve_view(request, pk):
             status='active',
             pin_code=pin
         )
+
+        if lot.donor.email:
+            send_mail(
+                subject=f"Новая бронь: {lot.title} | Делись Теплом",
+                message=(
+                    f"Здравствуйте, {lot.donor.username}!\n\n"
+                    f"Пользователь {request.user.username} забронировал ваш лот «{lot.title}» в количестве {requested_count} шт.\n\n"
+                    f"Когда получатель придет, он покажет QR-код или назовет 4-значный PIN-код для подтверждения выдачи в личном кабинете.\n\n"
+                    f"С уважением, сервис «Делись Теплом»"
+                ),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[lot.donor.email],
+                fail_silently=True
+            )
 
         messages.success(request, f"Успешно забронировано {requested_count} шт.! Ваш PIN-код для получения: {pin}")
         return redirect('user_cabinet')
@@ -193,4 +209,34 @@ def user_cabinet_view(request):
         'personal_co2': personal_co2,
         'eco_rank': eco_rank,
         'eco_progress': eco_progress,
+    })
+
+@login_required
+def reservation_chat_view(request, pk):
+    reservation = get_object_or_404(
+        Reservation.objects.select_related('lot', 'lot__donor', 'lot__location', 'user'),
+        pk=pk
+    )
+
+    if request.user != reservation.user and request.user != reservation.lot.donor and not request.user.is_staff:
+        messages.error(request, "У вас нет доступа к этому чату.")
+        return redirect('user_cabinet')
+
+    if request.method == 'POST':
+        text = request.POST.get('text', '').strip()
+        if text:
+            ReservationMessage.objects.create(
+                reservation=reservation,
+                sender=request.user,
+                text=text
+            )
+            return redirect('reservation_chat', pk=pk)
+
+    chat_messages = reservation.messages.select_related('sender').all()
+    other_user = reservation.lot.donor if request.user == reservation.user else reservation.user
+
+    return render(request, 'reservations/chat.html', {
+        'reservation': reservation,
+        'chat_messages': chat_messages,
+        'other_user': other_user,
     })

@@ -93,6 +93,11 @@
                                     <div class="small text-secondary mb-2">
                                         Получатель: <strong>{{ res.user.username }}</strong> ({{ res.reserved_units }} шт.)
                                     </div>
+                                    <div class="mb-2">
+                                        <a href="{% url 'reservation_chat' res.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                                            <i class="bi bi-chat-dots-fill me-1"></i> Чат с получателем
+                                        </a>
+                                    </div>
                                     <form method="post" action="{% url 'reservation_confirm' res.pk %}" class="d-flex gap-2">
                                         {% csrf_token %}
                                         <input type="text" name="pin_code" maxlength="4" class="form-control form-control-sm text-center fw-bold" placeholder="PIN" required style="letter-spacing: 2px;">
@@ -218,12 +223,17 @@
                                             <div><i class="bi bi-clock"></i> До: <strong>{{ res.lot.expiry_time|date:"d.m.Y H:i" }}</strong></div>
                                         </div>
 
-                                        <form method="post" action="{% url 'reservation_cancel' res.pk %}" onsubmit="return confirm('Отменить бронирование?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 fw-bold">
-                                                <i class="bi bi-x-circle"></i> Отменить бронь
-                                            </button>
-                                        </form>
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'reservation_chat' res.pk %}" class="btn btn-outline-primary btn-sm flex-grow-1 fw-bold">
+                                                <i class="bi bi-chat-dots-fill me-1"></i> Чат с донором
+                                            </a>
+                                            <form method="post" action="{% url 'reservation_cancel' res.pk %}" onsubmit="return confirm('Отменить бронирование?');" class="flex-grow-1">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger btn-sm w-100 fw-bold">
+                                                    <i class="bi bi-x-circle"></i> Отменить бронь
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

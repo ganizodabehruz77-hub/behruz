@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Чат по брони #{{ reservation.id }} | Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'user_cabinet' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                            <i class="bi bi-arrow-left"></i> В кабинет
+                        </a>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-chat-dots-fill text-success me-1"></i> 
+                            Чат: {{ reservation.lot.title }}
+                        </h5>
+                        <div class="small text-muted mt-1">
+                            Собеседник: <strong class="text-dark">{{ other_user.username }}</strong> 
+                            {% if other_user == reservation.lot.donor %}(Донор){% else %}(Получатель){% endif %}
+                            • Адрес: <strong class="text-dark">{{ reservation.lot.location.address }}</strong>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        {% if reservation.status == 'active' %}
+                            <span class="badge bg-warning text-dark fs-6">Бронь активна</span>
+                            <div class="small text-muted mt-1">PIN: <span class="font-monospace fw-bold text-dark">{{ reservation.pin_code }}</span></div>
+                        {% elif reservation.status == 'completed' %}
+                            <span class="badge bg-success fs-6">Лот передан</span>
+                        {% else %}
+                            <span class="badge bg-secondary fs-6">Отменено</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-3" id="chatBox" style="height: 420px; overflow-y: auto; background-color: #f8f9fa;">
+                {% for msg in chat_messages %}
+                    {% if msg.sender == request.user %}
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="p-3 rounded-4 shadow-sm bg-success text-white" style="max-width: 75%;">
+                                <div class="text-break">{{ msg.text }}</div>
+                                <div class="text-end small opacity-75 mt-1" style="font-size: 0.72rem;">
+                                    {{ msg.created_at|date:"d.m H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="d-flex justify-content-start mb-3">
+                            <div class="p-3 rounded-4 shadow-sm bg-white border text-dark" style="max-width: 75%;">
+                                <strong class="d-block small text-success mb-1">{{ msg.sender.username }}</strong>
+                                <div class="text-break">{{ msg.text }}</div>
+                                <div class="text-end small text-muted mt-1" style="font-size: 0.72rem;">
+                                    {{ msg.created_at|date:"d.m H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-heart display-4 text-success opacity-50 mb-3 d-block"></i>
+                        <h6 class="fw-bold">Здесь начинается ваш диалог</h6>
+                        <p class="small mb-0">Договоритесь об удобном времени встречи, деталях подъезда или уточните состав лота.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="card-footer bg-white border-top p-3">
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <input type="text" name="text" class="form-control" placeholder="Напишите сообщение..." required autocomplete="off" autofocus>
+                    <button type="submit" class="btn btn-success fw-bold px-4">
+                        <i class="bi bi-send-fill me-1"></i> Отправить
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+{% endblock %}
