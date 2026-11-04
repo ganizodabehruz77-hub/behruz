@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Оставить просьбу о помощи | Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <a href="{% url 'help_request_list' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left"></i> Назад к доске
+                </a>
+                <h4 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-megaphone-fill text-warning me-1"></i> Оставить просьбу о помощи
+                </h4>
+                <p class="text-muted small mb-0 mt-1">
+                    Опишите, какая помощь нужна вам, вашей семье, соседям или приюту для животных.
+                </p>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Что вам необходимо? *</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Например: Детская зимняя куртка (рост 134) или Сухой корм для 3 собак">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Категория *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="">-- Выберите категорию --</option>
+                                {% for c in categories %}
+                                    <option value="{{ c.id }}">{{ c.name }} ({% if c.lot_type == 'food' %}Еда{% else %}Вещи{% endif %})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ваш район города *</label>
+                            <select name="district" class="form-select" required>
+                                <option value="">-- Выберите район --</option>
+                                {% for d in districts %}
+                                    <option value="{{ d }}">{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Срочность</label>
+                            <select name="urgency" class="form-select">
+                                <option value="normal">Обычная</option>
+                                <option value="high">Срочно (нужно в ближайшие 24 часа)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Телефон для связи</label>
+                            <input type="text" name="contact_phone" value="{% if user.profile.phone %}{{ user.profile.phone }}{% endif %}" class="form-control" placeholder="+7 999 123-45-67">
+                            <div class="form-text">Чтобы неравнодушные люди могли вам позвонить.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Подробное описание ситуации *</label>
+                        <textarea name="description" rows="4" class="form-control" required placeholder="Укажите размеры, особенности диеты, точное количество или обстоятельства, чтобы благотворителям было легче помочь..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Опубликовать заявку
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Доска взаимопомощи — Ищу помощь | Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-megaphone-fill text-warning me-2"></i> Доска взаимопомощи
+        </h2>
+        <p class="text-muted mb-0">
+            Здесь жители города, многодетные семьи и приюты публикуют то, в чем сейчас остро нуждаются.
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'help_request_create' %}" class="btn btn-warning fw-bold text-dark shadow-sm">
+            <i class="bi bi-plus-circle-fill me-1"></i> Оставить просьбу
+        </a>
+    </div>
+</div>
+
+<!-- Фильтры и поиск -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Поиск (куртка, крупы)...">
+            </div>
+            <div class="col-md-3">
+                <select name="district" class="form-select">
+                    <option value="">Все районы</option>
+                    {% for d in districts %}
+                        <option value="{{ d }}" {% if selected_district == d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">Все категории</option>
+                    {% for c in categories %}
+                        <option value="{{ c.id }}" {% if selected_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="open" {% if selected_status == 'open' %}selected{% endif %}>Только открытые</option>
+                    <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Уже помогли</option>
+                    <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Все статусы</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-success w-100 fw-bold" title="Применить"><i class="bi bi-search"></i></button>
+                <a href="{% url 'help_request_list' %}" class="btn btn-outline-secondary" title="Сбросить"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Список заявок -->
+<div class="row g-3">
+    {% for req in help_requests %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 {% if req.urgency == 'high' and req.status == 'open' %}border-start border-danger border-4{% endif %}">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge {% if req.category.lot_type == 'food' %}bg-success{% else %}bg-primary{% endif %}">
+                            {{ req.category.name }}
+                        </span>
+                        <div>
+                            {% if req.status == 'closed' %}
+                                <span class="badge bg-secondary">Помощь получена</span>
+                            {% elif req.urgency == 'high' %}
+                                <span class="badge bg-danger animate-pulse"><i class="bi bi-fire"></i> Срочно</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark">Ищет помощь</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-2">{{ req.title }}</h5>
+                    <p class="text-secondary small flex-grow-1" style="white-space: pre-line;">{{ req.description }}</p>
+
+                    <div class="small text-muted border-top pt-2 mt-2">
+                        <div><i class="bi bi-geo-alt-fill text-danger me-1"></i> Район: <strong>{{ req.district }}</strong></div>
+                        <div><i class="bi bi-person-fill text-secondary me-1"></i> Автор: <strong>{{ req.author.username }}</strong></div>
+                        <div><i class="bi bi-clock me-1"></i> Дата: {{ req.created_at|date:"d.m.Y H:i" }}</div>
+                        {% if req.contact_phone %}
+                            <div class="mt-1"><i class="bi bi-telephone-fill text-success me-1"></i> Телефон: <strong>{{ req.contact_phone }}</strong></div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-3 pt-2 border-top d-flex gap-2">
+                        {% if req.contact_phone and req.status == 'open' %}
+                            <a href="tel:{{ req.contact_phone }}" class="btn btn-outline-success btn-sm flex-grow-1 fw-bold">
+                                <i class="bi bi-telephone"></i> Позвонить
+                            </a>
+                        {% endif %}
+
+                        {% if user == req.author or user.is_staff %}
+                            {% if req.status == 'open' %}
+                                <form method="post" action="{% url 'help_request_close' req.pk %}" class="flex-grow-1" onsubmit="return confirm('Отметить запрос как выполненный?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                        <i class="bi bi-check-circle"></i> Закрыть
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-emoji-smile display-4 text-muted mb-3 d-block"></i>
+            <h5 class="text-secondary">Запросов о помощи пока нет</h5>
+            <p class="text-muted small">Если вам или вашим знакомым нужна еда или теплые вещи, создайте первую заявку!</p>
+            <a href="{% url 'help_request_create' %}" class="btn btn-success btn-sm fw-bold">Оставить просьбу о помощи</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

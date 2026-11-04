@@ -29,6 +29,11 @@
                         <a class="nav-link" href="{% url 'lot_list' %}"><i class="bi bi-grid-fill"></i> Витрина</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'help_request_list' %}">
+                            <i class="bi bi-megaphone-fill text-warning"></i> Ищу помощь
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'impact_stats' %}"><i class="bi bi-tree-fill"></i> Эко-Дашборд</a>
                     </li>
                     {% if user.is_authenticated and user.profile.is_zoo_staff or user.is_staff %}

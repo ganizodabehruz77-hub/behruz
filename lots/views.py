@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.http import HttpResponseForbidden
-from .models import ItemLot, Category, Location
+from django.db.models import Q
+from .models import ItemLot, Category, Location, HelpRequest
 
 DISTRICTS = [
     'р. Исмоили Сомони',
@@ -138,3 +139,85 @@ def zoo_accept_lot_view(request, pk):
     lot.save()
     messages.success(request, f"Лот «{lot.title}» ({lot.weight_kg} кг) принят на баланс зоопарка!")
     return redirect('zoo_dashboard')
+
+def help_request_list_view(request):
+    help_requests = HelpRequest.objects.select_related('author', 'author__profile', 'category').all()
+
+    selected_status = request.GET.get('status', 'open')
+    if selected_status and selected_status != 'all':
+        help_requests = help_requests.filter(status=selected_status)
+
+    selected_district = request.GET.get('district', '').strip()
+    if selected_district:
+        help_requests = help_requests.filter(district=selected_district)
+
+    selected_category = request.GET.get('category', '').strip()
+    if selected_category:
+        help_requests = help_requests.filter(category_id=selected_category)
+
+    query = request.GET.get('q', '').strip()
+    if query:
+        help_requests = help_requests.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        )
+
+    categories = Category.objects.all()
+
+    return render(request, 'lots/help_list.html', {
+        'help_requests': help_requests,
+        'categories': categories,
+        'districts': DISTRICTS,
+        'selected_district': selected_district,
+        'selected_category': selected_category,
+        'selected_status': selected_status,
+        'query': query,
+    })
+
+@login_required
+def help_request_create_view(request):
+    categories = Category.objects.all()
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        category_id = request.POST.get('category')
+        district = request.POST.get('district', '').strip()
+        urgency = request.POST.get('urgency', 'normal')
+        contact_phone = request.POST.get('contact_phone', '').strip()
+
+        if not title or not description or not category_id or not district:
+            messages.error(request, "Заполните все обязательные поля (название, описание, категорию и район)!")
+        else:
+            category = get_object_or_404(Category, pk=category_id)
+            if not contact_phone and hasattr(request.user, 'profile'):
+                contact_phone = request.user.profile.phone
+
+            HelpRequest.objects.create(
+                author=request.user,
+                title=title,
+                description=description,
+                category=category,
+                district=district,
+                urgency=urgency,
+                contact_phone=contact_phone,
+            )
+            messages.success(request, "Ваша просьба о помощи опубликована! Волонтеры и доноры увидят её.")
+            return redirect('help_request_list')
+
+    return render(request, 'lots/help_create.html', {
+        'categories': categories,
+        'districts': DISTRICTS,
+    })
+
+@login_required
+def help_request_close_view(request, pk):
+    help_req = get_object_or_404(HelpRequest, pk=pk)
+
+    if help_req.author != request.user and not request.user.is_staff:
+        messages.error(request, "Только автор заявки может закрыть этот запрос.")
+        return redirect('help_request_list')
+
+    help_req.status = 'closed'
+    help_req.save()
+    messages.success(request, f"Запрос «{help_req.title}» отмечен как выполненный! Спасибо всем неравнодушным.")
+    return redirect('help_request_list')
