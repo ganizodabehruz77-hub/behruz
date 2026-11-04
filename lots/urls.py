@@ -7,6 +7,7 @@ from .views import (
     zoo_accept_lot_view,
     help_request_list_view,
     help_request_create_view,
+    help_request_respond_view,
     help_request_close_view,
 )
 from reservations.views import lot_reserve_view
@@ -20,5 +21,6 @@ urlpatterns = [
     path('zoo/lots/<int:pk>/accept/', zoo_accept_lot_view, name='zoo_accept_lot'),
     path('help/', help_request_list_view, name='help_request_list'),
     path('help/create/', help_request_create_view, name='help_request_create'),
+    path('help/<int:pk>/respond/', help_request_respond_view, name='help_request_respond'),
     path('help/<int:pk>/close/', help_request_close_view, name='help_request_close'),
 ]

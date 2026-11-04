@@ -78,6 +78,7 @@ class HelpRequest(models.Model):
         ('high', 'Срочно!'),
     ]
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='help_requests')
+    helper = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='helped_requests')
     title = models.CharField(max_length=120)
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='help_requests')

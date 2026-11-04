@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.http import HttpResponseForbidden
 from django.db.models import Q
+from django.urls import reverse
+from core.models import Notification
 from .models import ItemLot, Category, Location, HelpRequest
 
 DISTRICTS = [
@@ -141,7 +143,7 @@ def zoo_accept_lot_view(request, pk):
     return redirect('zoo_dashboard')
 
 def help_request_list_view(request):
-    help_requests = HelpRequest.objects.select_related('author', 'author__profile', 'category').all()
+    help_requests = HelpRequest.objects.select_related('author', 'author__profile', 'helper', 'category').all()
 
     selected_status = request.GET.get('status', 'open')
     if selected_status and selected_status != 'all':
@@ -210,11 +212,37 @@ def help_request_create_view(request):
     })
 
 @login_required
+def help_request_respond_view(request, pk):
+    help_req = get_object_or_404(HelpRequest, pk=pk, status='open')
+
+    if help_req.author == request.user:
+        messages.error(request, "Вы не можете откликнуться на собственную заявку.")
+        return redirect('help_request_list')
+
+    help_req.status = 'in_progress'
+    help_req.helper = request.user
+    help_req.save()
+
+    helper_phone = ''
+    if hasattr(request.user, 'profile') and request.user.profile.phone:
+        helper_phone = f" (тел: {request.user.profile.phone})"
+
+    Notification.objects.create(
+        user=help_req.author,
+        title="Волонтер готов помочь! ❤️",
+        message=f"Пользователь {request.user.username} откликнулся на вашу просьбу «{help_req.title}»{helper_phone}.",
+        link=reverse('help_request_list')
+    )
+
+    messages.success(request, f"Спасибо за ваше доброе сердце! Вы откликнулись на просьбу «{help_req.title}». Автор получил уведомление.")
+    return redirect('help_request_list')
+
+@login_required
 def help_request_close_view(request, pk):
     help_req = get_object_or_404(HelpRequest, pk=pk)
 
-    if help_req.author != request.user and not request.user.is_staff:
-        messages.error(request, "Только автор заявки может закрыть этот запрос.")
+    if help_req.author != request.user and help_req.helper != request.user and not request.user.is_staff:
+        messages.error(request, "Только автор заявки или откликнувшийся волонтер может закрыть этот запрос.")
         return redirect('help_request_list')
 
     help_req.status = 'closed'

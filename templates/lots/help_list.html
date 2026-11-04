@@ -44,6 +44,7 @@
             <div class="col-md-2">
                 <select name="status" class="form-select">
                     <option value="open" {% if selected_status == 'open' %}selected{% endif %}>Только открытые</option>
+                    <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>Помощь в пути</option>
                     <option value="closed" {% if selected_status == 'closed' %}selected{% endif %}>Уже помогли</option>
                     <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Все статусы</option>
                 </select>
@@ -60,7 +61,7 @@
 <div class="row g-3">
     {% for req in help_requests %}
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 {% if req.urgency == 'high' and req.status == 'open' %}border-start border-danger border-4{% endif %}">
+            <div class="card h-100 shadow-sm border-0 {% if req.urgency == 'high' and req.status == 'open' %}border-start border-danger border-4{% elif req.status == 'in_progress' %}border-start border-warning border-4{% endif %}">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge {% if req.category.lot_type == 'food' %}bg-success{% else %}bg-primary{% endif %}">
@@ -69,6 +70,8 @@
                         <div>
                             {% if req.status == 'closed' %}
                                 <span class="badge bg-secondary">Помощь получена</span>
+                            {% elif req.status == 'in_progress' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i> Помощь в пути</span>
                             {% elif req.urgency == 'high' %}
                                 <span class="badge bg-danger animate-pulse"><i class="bi bi-fire"></i> Срочно</span>
                             {% else %}
@@ -87,17 +90,31 @@
                         {% if req.contact_phone %}
                             <div class="mt-1"><i class="bi bi-telephone-fill text-success me-1"></i> Телефон: <strong>{{ req.contact_phone }}</strong></div>
                         {% endif %}
+                        {% if req.helper %}
+                            <div class="mt-1 text-primary fw-bold">
+                                <i class="bi bi-heart-fill text-danger me-1"></i> Отозвался волонтер: {{ req.helper.username }}
+                            </div>
+                        {% endif %}
                     </div>
 
-                    <div class="mt-3 pt-2 border-top d-flex gap-2">
-                        {% if req.contact_phone and req.status == 'open' %}
-                            <a href="#" class="btn btn-outline-success btn-sm flex-grow-1 fw-bold">
+                    <div class="mt-3 pt-2 border-top d-flex gap-2 flex-wrap">
+                        {% if req.status == 'open' and user.is_authenticated and user != req.author %}
+                            <form method="post" action="{% url 'help_request_respond' req.pk %}" class="flex-grow-1" onsubmit="return confirm('Вы готовы помочь с этой просьбой? Автор получит уведомление.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-sm w-100 fw-bold text-dark shadow-sm">
+                                    <i class="bi bi-heart-fill text-danger me-1"></i> Я помогу
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if req.contact_phone and req.status != 'closed' %}
+                            <a href="tel:{{ req.contact_phone }}" class="btn btn-outline-success btn-sm flex-grow-1 fw-bold">
                                 <i class="bi bi-telephone"></i> Позвонить
                             </a>
                         {% endif %}
 
-                        {% if user == req.author or user.is_staff %}
-                            {% if req.status == 'open' %}
+                        {% if user == req.author or user == req.helper or user.is_staff %}
+                            {% if req.status != 'closed' %}
                                 <form method="post" action="{% url 'help_request_close' req.pk %}" class="flex-grow-1" onsubmit="return confirm('Отметить запрос как выполненный?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
