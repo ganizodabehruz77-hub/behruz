@@ -1,7 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.utils import timezone
 from lots.models import ItemLot, Category, Location
+from .models import Notification
 
 DISTRICTS = [
     'р. Исмоили Сомони',
@@ -74,3 +76,20 @@ def lot_list_view(request):
         'selected_district': district,
         'selected_sort': sort,
     })
+
+@login_required
+def mark_all_notifications_read_view(request):
+    request.user.notifications.filter(is_read=False).update(is_read=True)
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return redirect(referer)
+    return redirect('lot_list')
+
+@login_required
+def notification_click_view(request, pk):
+    notif = get_object_or_404(request.user.notifications, pk=pk)
+    notif.is_read = True
+    notif.save()
+    if notif.link:
+        return redirect(notif.link)
+    return redirect('user_cabinet')

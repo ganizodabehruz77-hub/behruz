@@ -2,13 +2,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-SECRET_KEY = 'django-insecure-u!3tj@66%m7ke$c%ys322ri^xa9g$(d7r9^1fosfdm&3o63#sa'
+SECRET_KEY = 'django-insecure-u!3tj@66%m7ke$c%ys322ri^xa9g$(d7r9^1fosfdm&3o63sa'
 
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,11 +15,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',      
-    'core',          
-    'lots',          
-    'reservations',  
-    'analytics',     
+    'accounts',
+    'core',
+    'lots',
+    'reservations',
+    'analytics',
 ]
 
 MIDDLEWARE = [
@@ -46,6 +44,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.notifications_processor',
             ],
         },
     },
@@ -53,14 +52,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sharewarmth.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -77,7 +74,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Europe/Moscow'
@@ -85,7 +81,6 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
 USE_TZ = True
-
 
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'

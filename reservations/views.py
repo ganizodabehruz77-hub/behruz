@@ -6,6 +6,8 @@ from django.db.models import Sum
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+from django.urls import reverse
+from core.models import Notification
 from lots.models import ItemLot
 from .models import Reservation, ReservationMessage, generate_pin_code
 
@@ -76,6 +78,13 @@ def lot_reserve_view(request, pk):
                 fail_silently=True
             )
 
+        Notification.objects.create(
+            user=lot.donor,
+            title=f"Новая бронь: {lot.title}",
+            message=f"Пользователь {request.user.username} забронировал {requested_count} шт.",
+            link=reverse('user_cabinet')
+        )
+
         messages.success(request, f"Успешно забронировано {requested_count} шт.! Ваш PIN-код для получения: {pin}")
         return redirect('user_cabinet')
 
@@ -126,6 +135,13 @@ def reservation_confirm_view(request, pk):
             receiver_profile.rating_score = min(100, receiver_profile.rating_score + 2)
             receiver_profile.save()
 
+            Notification.objects.create(
+                user=reservation.user,
+                title="Лот получен! 🎉",
+                message=f"Донор {request.user.username} подтвердил выдачу «{reservation.lot.title}». Вам начислено +2% рейтинга!",
+                link=reverse('user_cabinet')
+            )
+
             messages.success(request, "Выдача успешно подтверждена! Лот передан.")
         else:
             messages.error(request, "Неверный PIN-код! Проверьте код у получателя.")
@@ -155,6 +171,13 @@ def reservation_confirm_qr_view(request, pk, pin):
         receiver_profile = reservation.user.profile
         receiver_profile.rating_score = min(100, receiver_profile.rating_score + 2)
         receiver_profile.save()
+
+        Notification.objects.create(
+            user=reservation.user,
+            title="Лот получен по QR-коду! 🎉",
+            message=f"Донор {request.user.username} подтвердил передачу «{reservation.lot.title}». Вам начислено +2% рейтинга!",
+            link=reverse('user_cabinet')
+        )
 
         messages.success(request, f"Выдача успешно подтверждена по QR-коду! Лот «{reservation.lot.title}» передан.")
     else:
@@ -229,6 +252,13 @@ def reservation_chat_view(request, pk):
                 reservation=reservation,
                 sender=request.user,
                 text=text
+            )
+            other_user = reservation.lot.donor if request.user == reservation.user else reservation.user
+            Notification.objects.create(
+                user=other_user,
+                title=f"Сообщение от {request.user.username}",
+                message=f"{text[:50]}",
+                link=reverse('reservation_chat', kwargs={'pk': pk})
             )
             return redirect('reservation_chat', pk=pk)
 
