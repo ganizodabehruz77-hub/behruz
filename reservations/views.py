@@ -117,6 +117,36 @@ def reservation_confirm_view(request, pk):
     return redirect('user_cabinet')
 
 @login_required
+def reservation_confirm_qr_view(request, pk, pin):
+    reservation = get_object_or_404(
+        Reservation.objects.select_related('lot'),
+        pk=pk,
+        status='active'
+    )
+
+    if reservation.lot.donor != request.user and not request.user.is_staff:
+        messages.error(request, "Только автор этого лота может подтвердить выдачу по QR-коду.")
+        return redirect('user_cabinet')
+
+    if reservation.pin_code == pin:
+        reservation.status = 'completed'
+        reservation.save()
+
+        if reservation.lot.available_quantity == 0:
+            reservation.lot.status = 'completed'
+            reservation.lot.save()
+
+        receiver_profile = reservation.user.profile
+        receiver_profile.rating_score = min(100, receiver_profile.rating_score + 2)
+        receiver_profile.save()
+
+        messages.success(request, f"Выдача успешно подтверждена по QR-коду! Лот «{reservation.lot.title}» передан.")
+    else:
+        messages.error(request, "Неверный или устаревший QR-код!")
+
+    return redirect('user_cabinet')
+
+@login_required
 def user_cabinet_view(request):
     my_lots = ItemLot.objects.filter(donor=request.user).select_related('category', 'location').order_by('-created_at')
 

@@ -193,11 +193,23 @@
                                             <span class="badge bg-success">В ожидании</span>
                                         </div>
 
-                                        <div class="bg-success bg-opacity-10 border border-success rounded p-3 text-center my-3">
-                                            <small class="text-success fw-bold d-block text-uppercase">Ваш PIN-код для получения:</small>
-                                            <span class="display-5 fw-bold text-success font-monospace" style="letter-spacing: 5px;">
-                                                {{ res.pin_code }}
-                                            </span>
+                                        <div class="bg-success bg-opacity-10 border border-success rounded p-3 my-3">
+                                            <small class="text-success fw-bold d-block text-uppercase text-center mb-2">
+                                                <i class="bi bi-qr-code-scan me-1"></i> Предъявите QR-код или назовите PIN:
+                                            </small>
+                                            <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                                                <div class="bg-white p-2 rounded shadow-sm border text-center">
+                                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ request.scheme }}://{{ request.get_host }}{% url 'reservation_confirm_qr' res.pk res.pin_code %}" 
+                                                         alt="QR Code" width="120" height="120" class="img-fluid rounded">
+                                                </div>
+                                                <div class="text-center text-sm-start">
+                                                    <span class="text-muted small d-block">4-значный PIN-код:</span>
+                                                    <span class="display-6 fw-bold text-success font-monospace" style="letter-spacing: 4px;">
+                                                        {{ res.pin_code }}
+                                                    </span>
+                                                    <small class="text-muted d-block mt-1" style="max-width: 180px;">Донор может навести камеру телефона на QR для быстрой выдачи</small>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="small text-secondary mb-3">
