@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Наши напарники и заведения | Делись Теплом{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-shop text-success me-2"></i> Наши напарники и заведения
+        </h2>
+        <p class="text-muted mb-0">
+            Кафе, пекарни, супермаркеты и организации города, которые ежедневно передают свежую продукцию жителям и приютам.
+        </p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for item in partners_data %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 lot-card">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-2 border border-success border-opacity-25 rounded-pill">
+                            <i class="bi bi-patch-check-fill me-1"></i> Эко-Партнер
+                        </span>
+                        <div class="text-warning fw-bold small">
+                            <i class="bi bi-star-fill text-warning"></i> {{ item.avg_rating }}
+                            <span class="text-muted">({{ item.reviews_count }})</span>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-1">
+                        {% if item.partner.profile.company_name %}
+                            {{ item.partner.profile.company_name }}
+                        {% else %}
+                            {{ item.partner.username }}
+                        {% endif %}
+                    </h4>
+
+                    {% if item.partner.profile.address %}
+                        <div class="small text-muted mb-2">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ item.partner.profile.address }}
+                        </div>
+                    {% endif %}
+
+                    <p class="text-secondary small flex-grow-1" style="max-height: 80px; overflow: hidden; text-overflow: ellipsis;">
+                        {% if item.partner.profile.bio %}
+                            {{ item.partner.profile.bio }}
+                        {% else %}
+                            Ответственный донор и партнер социального фудшеринг-движения «Делись Теплом».
+                        {% endif %}
+                    </p>
+
+                    <div class="bg-light rounded p-2 my-3 d-flex justify-content-around text-center small">
+                        <div>
+                            <span class="d-block fw-bold text-success fs-6">{{ item.donated_count }}</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">Спасено лотов</span>
+                        </div>
+                        <div class="border-start"></div>
+                        <div>
+                            <span class="d-block fw-bold text-dark fs-6">{{ item.active_count }}</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">Доступно сейчас</span>
+                        </div>
+                        <div class="border-start"></div>
+                        <div>
+                            <span class="d-block fw-bold text-warning fs-6">{{ item.reviews_count }}</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">Отзывов</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'partner_detail' item.partner.username %}" class="btn btn-outline-success w-100 fw-bold">
+                        Профиль и отзывы <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-shop display-4 text-muted mb-3 d-block"></i>
+            <h5 class="text-secondary">Партнеры пока не зарегистрированы</h5>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

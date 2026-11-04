@@ -36,6 +36,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'impact_stats' %}"><i class="bi bi-tree-fill"></i> Эко-Дашборд</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'partner_list' %}">
+                            <i class="bi bi-shop"></i> Заведения-Партнеры
+                        </a>
+                    </li>
                     {% if user.is_authenticated and user.profile.is_zoo_staff or user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link text-warning fw-bold" href="{% url 'zoo_dashboard' %}">
