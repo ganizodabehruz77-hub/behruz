@@ -29,7 +29,7 @@ def lot_reserve_view(request, pk):
             messages.error(request, "Вы не можете забрать собственный лот.")
             return redirect('lot_detail', pk=pk)
 
-        if hasattr(request.user, 'profile') and request.user.profile.is_business:
+        if request.user.profile.is_business:
             messages.error(request, "Заведения и организации выступают только в роли доноров и не могут забирать продукты.")
             return redirect('lot_detail', pk=pk)
 

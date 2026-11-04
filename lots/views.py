@@ -191,7 +191,7 @@ def help_request_create_view(request):
             messages.error(request, "Заполните все обязательные поля (название, описание, категорию и район)!")
         else:
             category = get_object_or_404(Category, pk=category_id)
-            if not contact_phone and hasattr(request.user, 'profile'):
+            if not contact_phone:
                 contact_phone = request.user.profile.phone
 
             HelpRequest.objects.create(
@@ -224,7 +224,7 @@ def help_request_respond_view(request, pk):
     help_req.save()
 
     helper_phone = ''
-    if hasattr(request.user, 'profile') and request.user.profile.phone:
+    if request.user.profile.phone:
         helper_phone = f" (тел: {request.user.profile.phone})"
 
     Notification.objects.create(
